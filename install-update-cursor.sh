@@ -12,7 +12,7 @@ BOLD='\e[1m'
 UNDERLINE='\e[4m'
 
 # Define variables
-APP_DIR="/home/emon/Applications/cursor"
+APP_DIR="$HOME/Applications/cursor"
 APP_IMAGE="$APP_DIR/cursor.AppImage"
 EXTRACT_DIR="$APP_DIR/squashfs-root"
 API_URL="https://api2.cursor.sh/updates/api/update/linux-x64/cursor/0.48.9/d024087b1e0e0d0110800b253e063c65497b77a95213eb7e063df2bf7e8f6a07/stable"
