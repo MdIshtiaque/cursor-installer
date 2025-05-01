@@ -15,6 +15,9 @@ UNDERLINE='\e[4m'
 APP_DIR="$HOME/Applications/cursor"
 APP_IMAGE="$APP_DIR/cursor.AppImage"
 EXTRACT_DIR="$APP_DIR/squashfs-root"
+ICON_DIR="$APP_DIR/icons"
+ICON_PATH="$ICON_DIR/cursor_icon.png"
+ICON_URL="https://camo.githubusercontent.com/a0307a3865517874a8d9f9904ef532de5f0600a16cbbb4c6f0204904e0e4e172/68747470733a2f2f6d696e746c6966792e73332d75732d776573742d312e616d617a6f6e6177732e636f6d2f637572736f722f696d616765732f6c6f676f2f6170702d6c6f676f2e737667"
 API_URL="https://api2.cursor.sh/updates/api/update/linux-x64/cursor/0.48.9/d024087b1e0e0d0110800b253e063c65497b77a95213eb7e063df2bf7e8f6a07/stable"
 
 # Function to display messages
@@ -63,6 +66,20 @@ info "Starting Cursor update process..."
 
 # Navigate to application directory
 cd "$APP_DIR" || { error "Failed to navigate to $APP_DIR"; exit 1; }
+
+# Create icons directory if it doesn't exist
+if [ ! -d "$ICON_DIR" ]; then
+    mkdir -p "$ICON_DIR"
+fi
+
+# Download icon
+info "${UNDERLINE}Downloading Cursor icon...${NC}"
+if wget -q "$ICON_URL" -O "$ICON_PATH" 2>&1; then
+    success "Icon downloaded successfully."
+else
+    warning "Failed to download icon from URL. Will use default icon instead."
+    ICON_PATH=""
+fi
 
 # Fetch the latest version information from the API
 echo ""
@@ -174,17 +191,25 @@ if [ -f "$DESKTOP_FILE" ]; then
     else
         info "${UNDERLINE}Creating/updating desktop shortcut...${NC}"
 
-        # Ask for icon path
-        echo -e "${PURPLE}┌─ Icon Selection ─────────────────────────┐${NC}"
-        echo -e "${PURPLE}│${NC} Enter a custom path or use the default icon"
-        echo -e "${PURPLE}└─────────────────────────────────────────┘${NC}"
+        # Use downloaded icon or ask for custom path if download failed
+        if [[ -z "$ICON_PATH" || ! -f "$ICON_PATH" ]]; then
+            # Ask for icon path
+            echo -e "${PURPLE}┌─ Icon Selection ─────────────────────────┐${NC}"
+            echo -e "${PURPLE}│${NC} Enter a custom path or use the default icon"
+            echo -e "${PURPLE}└─────────────────────────────────────────┘${NC}"
 
-        read -p "$(echo -e "${CYAN}Icon path (or press Enter for default):${NC} ")" icon_path
+            read -p "$(echo -e "${CYAN}Icon path (or press Enter for default):${NC} ")" user_icon_path
 
-        # Use default icon if none provided
-        if [[ -z "$icon_path" ]]; then
-            icon_path="$EXTRACT_DIR/resources/app/resources/app.asar.unpacked/static/icon.png"
-            info "Using default icon: $icon_path"
+            # Use default icon if none provided
+            if [[ -z "$user_icon_path" ]]; then
+                icon_path="$EXTRACT_DIR/resources/app/resources/app.asar.unpacked/static/icon.png"
+                info "Using default icon: $icon_path"
+            else
+                icon_path="$user_icon_path"
+            fi
+        else
+            icon_path="$ICON_PATH"
+            info "Using downloaded icon: $icon_path"
         fi
 
         # Create desktop entry file
@@ -208,17 +233,25 @@ EOF
 else
     info "${UNDERLINE}Creating desktop shortcut...${NC}"
 
-    # Ask for icon path
-    echo -e "${PURPLE}┌─ Icon Selection ─────────────────────────┐${NC}"
-    echo -e "${PURPLE}│${NC} Enter a custom path or use the default icon"
-    echo -e "${PURPLE}└─────────────────────────────────────────┘${NC}"
+    # Use downloaded icon or ask for custom path if download failed
+    if [[ -z "$ICON_PATH" || ! -f "$ICON_PATH" ]]; then
+        # Ask for icon path
+        echo -e "${PURPLE}┌─ Icon Selection ─────────────────────────┐${NC}"
+        echo -e "${PURPLE}│${NC} Enter a custom path or use the default icon"
+        echo -e "${PURPLE}└─────────────────────────────────────────┘${NC}"
 
-    read -p "$(echo -e "${CYAN}Icon path (or press Enter for default):${NC} ")" icon_path
+        read -p "$(echo -e "${CYAN}Icon path (or press Enter for default):${NC} ")" user_icon_path
 
-    # Use default icon if none provided
-    if [[ -z "$icon_path" ]]; then
-        icon_path="$EXTRACT_DIR/resources/app/resources/app.asar.unpacked/static/icon.png"
-        info "Using default icon: $icon_path"
+        # Use default icon if none provided
+        if [[ -z "$user_icon_path" ]]; then
+            icon_path="$EXTRACT_DIR/resources/app/resources/app.asar.unpacked/static/icon.png"
+            info "Using default icon: $icon_path"
+        else
+            icon_path="$user_icon_path"
+        fi
+    else
+        icon_path="$ICON_PATH"
+        info "Using downloaded icon: $icon_path"
     fi
 
     # Create desktop entry file
