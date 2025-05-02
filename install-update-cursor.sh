@@ -64,6 +64,12 @@ echo ""
 # Start update process
 info "Starting Cursor update process..."
 
+# Create application directory if it doesn't exist
+if [ ! -d "$APP_DIR" ]; then
+    mkdir -p "$APP_DIR"
+    success "Created application directory: $APP_DIR"
+fi
+
 # Navigate to application directory
 cd "$APP_DIR" || { error "Failed to navigate to $APP_DIR"; exit 1; }
 
