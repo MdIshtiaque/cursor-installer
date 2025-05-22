@@ -37,6 +37,37 @@ function warning {
     echo -e "${YELLOW}[WARNING]${NC} $1"
 }
 
+# Check if curl is installed
+if ! command -v curl &> /dev/null; then
+    error "curl is not installed on your system."
+    echo -e "${YELLOW}┌─ Prerequisites Check ────────────────────────┐${NC}"
+    echo -e "${YELLOW}│${NC} curl is required to download Cursor updates."
+    echo -e "${YELLOW}└─────────────────────────────────────────┘${NC}"
+    
+    read -p "$(echo -e "${CYAN}Would you like to install curl now? (y/n):${NC} ")" install_curl
+    
+    if [[ "$install_curl" != "y" && "$install_curl" != "Y" ]]; then
+        echo ""
+        warning "Please install curl and run this script again."
+        echo -e "${PURPLE}Tip: You can install curl using:${NC}"
+        echo -e "${CYAN}    sudo apt install curl${NC} (for Debian/Ubuntu)"
+        echo -e "${CYAN}    sudo dnf install curl${NC} (for Fedora)"
+        echo -e "${CYAN}    sudo pacman -S curl${NC} (for Arch Linux)"
+        echo ""
+        exit 1
+    else
+        echo ""
+        info "Installing curl..."
+        if sudo apt-get update && sudo apt-get install -y curl; then
+            success "curl installed successfully!"
+            echo ""
+        else
+            error "Failed to install curl. Please install it manually and run this script again."
+            exit 1
+        fi
+    fi
+fi
+
 # Spinner animation for processes
 function show_spinner {
     local pid=$1
