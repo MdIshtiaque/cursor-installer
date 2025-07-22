@@ -310,6 +310,70 @@ EOF
     success "Desktop shortcut created successfully!"
 fi
 
+# Create URL handler for cursor:// links
+URL_HANDLER_FILE="$HOME/.local/share/applications/cursor-url-handler.desktop"
+echo ""
+info "${UNDERLINE}Setting up URL handler for cursor:// links...${NC}"
+
+# Ensure applications directory exists
+mkdir -p "$HOME/.local/share/applications"
+
+# Check if URL handler already exists and has the same content
+url_handler_content="[Desktop Entry]
+Name=Cursor URL Handler
+Comment=Handle cursor:// URLs
+Exec=$EXTRACT_DIR/AppRun --no-sandbox --open-url %U
+Icon=$icon_path
+Terminal=false
+Type=Application
+Categories=Development;IDE;
+NoDisplay=true
+StartupNotify=true
+MimeType=x-scheme-handler/cursor;
+StartupWMClass=Cursor
+Keywords=cursor;"
+
+if [ -f "$URL_HANDLER_FILE" ]; then
+    if [ "$(cat "$URL_HANDLER_FILE")" = "$url_handler_content" ]; then
+        info "URL handler already up to date."
+    else
+        warning "Updating existing URL handler."
+        echo "$url_handler_content" > "$URL_HANDLER_FILE"
+        chmod +x "$URL_HANDLER_FILE"
+        success "URL handler updated successfully!"
+    fi
+else
+    # Create URL handler desktop entry file
+    echo "$url_handler_content" > "$URL_HANDLER_FILE"
+    
+    # Make URL handler file executable
+    chmod +x "$URL_HANDLER_FILE"
+    
+    success "URL handler created successfully!"
+fi
+
+# Register the URL handler with the system
+if command -v xdg-mime &> /dev/null; then
+    xdg-mime default cursor-url-handler.desktop x-scheme-handler/cursor
+    success "URL handler registered with system."
+else
+    warning "xdg-mime not found. URL handler created but not registered."
+fi
+
+# Update desktop database
+if command -v update-desktop-database &> /dev/null; then
+    update-desktop-database "$HOME/.local/share/applications" 2>/dev/null
+    success "Desktop database updated."
+else
+    warning "update-desktop-database not found. You may need to log out and back in."
+fi
+
+echo ""
+echo -e "${CYAN}┌─ URL Handler Info ───────────────────────┐${NC}"
+echo -e "${CYAN}│${NC} cursor:// links will now open in Cursor"
+echo -e "${CYAN}│${NC} Example: cursor://file/path/to/file.js"
+echo -e "${CYAN}└─────────────────────────────────────────┘${NC}"
+
 # Final completion message with centered version number
 version_display="v$version"
 padding=$(( (49 - ${#version_display} - 4) / 2 ))
